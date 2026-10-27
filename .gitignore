@@ -1,2 +1,26 @@
+
+# Environment
 .env
-.venv
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated databases
+*.db
+*.db-shm
+*.db-wal
+
+# Editor
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,28 +1,31 @@
 import requests
 from minsearch import Index
 
+FAQ_URL = "https://datatalks.club/faq"
 
-def load_faq_data():
-    docs_url = "https://datatalks.club/faq/json/courses.json"
-    response = requests.get(docs_url)
+
+def load_documents() -> list[dict]:
+    response = requests.get(
+        f"{FAQ_URL}/json/courses.json",
+        timeout=30,
+    )
     response.raise_for_status()
-    courses_raw = response.json()
 
     documents = []
-    url_prefix = "https://datatalks.club/faq"
 
-    for course in courses_raw:
-        course_url = f"{url_prefix}{course['path']}"
-        course_response = requests.get(course_url)
-        course_response.raise_for_status()
-        course_data = course_response.json()
+    for course in response.json():
+        response = requests.get(
+            f"{FAQ_URL}{course['path']}",
+            timeout=30,
+        )
+        response.raise_for_status()
 
-        documents.extend(course_data)
+        documents.extend(response.json())
 
     return documents
 
 
-def build_index(documents):
+def build_index(documents: list[dict]) -> Index:
     index = Index(
         text_fields=["question", "section", "answer"],
         keyword_fields=["course"],
