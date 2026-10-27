@@ -152,6 +152,16 @@ def test_function_call() -> None:
             "This is 3rd messages: ", messages, end="\n\n"
         )  # print 3rd message to view how it work
 
+    final_response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+    )
+
+    print(
+        "This is response from llm: ",
+        final_response.choices[0].message.model_dump(),
+    )
+
 
 if __name__ == "__main__":
     main()
