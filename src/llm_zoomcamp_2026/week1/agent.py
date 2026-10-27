@@ -25,18 +25,22 @@ def request_tool_call(
     model: str,
     question: str,
 ):
-    return client.chat.completions.create(
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a course assistant. "
+                "Use the search tool for course-specific facts."
+            ),
+        },
+        {"role": "user", "content": question},
+    ]
+
+    response = client.chat.completions.create(
         model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a course assistant. "
-                    "Use the search tool for course-specific facts."
-                ),
-            },
-            {"role": "user", "content": question},
-        ],
-        tools=[SEARCH_TOOL],  # type: ignore
+        messages=messages,
+        tools=[SEARCH_TOOL],
         tool_choice="auto",
-    )  # type: ignore
+    )
+
+    return response, messages  # type: ignore

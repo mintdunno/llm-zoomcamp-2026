@@ -91,13 +91,22 @@ def test_function_call() -> None:
 
     model = os.environ["MODEL"]
 
-    response = request_tool_call(
+    response, messages = request_tool_call(
         client=client,
         model=model,
         question="I just discovered LLM Zoomcamp. Can I join now?",
     )
+    print(
+        "This is first messages: ", messages, end="\n\n"
+    )  # print 1st message to view how it work
 
-    tool_calls = response.choices[0].message.tool_calls or []
+    message = response.choices[0].message
+    tool_calls = message.tool_calls or []
+
+    messages.append(message.model_dump(exclude_none=True))
+    print(
+        "This is 2nd messages: ", messages, end="\n\n"
+    )  # print 2nd message to view how it work
 
     if not tool_calls:
         print("Model did not request any tools.")
@@ -128,8 +137,20 @@ def test_function_call() -> None:
         print(f"\nQuery: {args['query']}")
         print(f"Results found: {len(results)}")
 
-        for doc in results[:2]:
-            print(f"- {doc['question']}")
+        # for doc in results[:2]:
+        #     print(f"- {doc['question']}")
+
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": call.id,
+                "content": json.dumps(results),
+            }
+        )
+
+        print(
+            "This is 3rd messages: ", messages, end="\n\n"
+        )  # print 3rd message to view how it work
 
 
 if __name__ == "__main__":
