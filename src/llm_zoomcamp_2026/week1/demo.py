@@ -1,9 +1,11 @@
+import json
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.completion_usage import CompletionUsage
 
+from llm_zoomcamp_2026.week1.agent import request_tool_call
 from llm_zoomcamp_2026.week1.ingest import (
     build_index,
     load_documents,
@@ -77,6 +79,57 @@ def main() -> None:
             )
 
             print(f"Estimated cost: ${cost:.8f}")
+
+
+def test_function_call() -> None:
+    load_dotenv()
+
+    client = OpenAI(
+        api_key=os.environ["AIBOX_API_KEY"],
+        base_url=os.environ["BASE_URL"],
+    )
+
+    model = os.environ["MODEL"]
+
+    response = request_tool_call(
+        client=client,
+        model=model,
+        question="I just discovered LLM Zoomcamp. Can I join now?",
+    )
+
+    tool_calls = response.choices[0].message.tool_calls or []
+
+    if not tool_calls:
+        print("Model did not request any tools.")
+        return
+
+    # Prepare the real search engine
+    documents = load_documents()
+    index = build_index(documents)
+
+    rag = RAG(
+        index=index,
+        client=client,
+        model=model,
+    )
+
+    # Execute every tool call
+    for call in tool_calls:
+        if call.function.name != "search":
+            raise ValueError(f"Unknown tool: {call.function.name}")
+
+        args = json.loads(call.function.arguments)
+
+        if set(args) != {"query"} or not isinstance(args["query"], str):
+            raise ValueError("Invalid search arguments")
+
+        results = rag.search(args["query"])
+
+        print(f"\nQuery: {args['query']}")
+        print(f"Results found: {len(results)}")
+
+        for doc in results[:2]:
+            print(f"- {doc['question']}")
 
 
 if __name__ == "__main__":

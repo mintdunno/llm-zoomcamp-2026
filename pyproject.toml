@@ -17,7 +17,8 @@ dependencies = [
 ]
 
 [project.scripts]
-llm-zoomcamp-2026 = "llm_zoomcamp_2026:main"
+rag-demo = "llm_zoomcamp_2026.week1.demo:main"
+agent-demo = "llm_zoomcamp_2026.week1.demo:test_function_call"
 
 [build-system]
 requires = ["uv_build>=0.13.3,<0.14.0"]
