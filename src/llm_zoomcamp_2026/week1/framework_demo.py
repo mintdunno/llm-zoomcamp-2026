@@ -54,31 +54,4 @@ runner = OpenAIChatCompletionsRunner(
     llm_client=llm_client,
 )
 
-result = runner.loop(
-    prompt="Can I join LLM Zoomcamp now?",
-    # callback=callback,
-)
-
-print("Final answer:", result.last_message)
-
-print("Input tokens:", result.tokens.input_tokens)
-print("Output tokens:", result.tokens.output_tokens)
-
-print("Cost:", result.cost)
-
-print("Total messages:", len(result.all_messages))
-
-result2 = runner.loop(
-    prompt="How do I run a different model?",
-    previous_messages=result.all_messages,
-    callback=callback,
-)
-
-print("Final answer 2:", result2.last_message)
-
-print("Input tokens 2:", result2.tokens.input_tokens)
-print("Output tokens 2:", result2.tokens.output_tokens)
-
-print("Cost 2:", result2.cost)
-
-print("Total messages 2:", len(result2.all_messages))
+runner.run()
