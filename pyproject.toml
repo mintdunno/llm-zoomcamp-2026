@@ -14,6 +14,7 @@ dependencies = [
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
     "sqlitesearch>=0.3.0",
+    "toyaikit>=0.0.11",
 ]
 
 [project.scripts]
