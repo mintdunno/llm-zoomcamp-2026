@@ -24,6 +24,7 @@ SEARCH_TOOL = {
 }
 
 
+# Request tool call
 def request_tool_call(
     client: OpenAI,
     model: str,
@@ -50,6 +51,7 @@ def request_tool_call(
     return response, messages  # type: ignore
 
 
+# Execute search tool call
 def execute_tool_call(call, rag: RAG) -> dict[str, str]:
     if call.function.name != "search":
         raise ValueError(f"Unknown tool: {call.function.name}")

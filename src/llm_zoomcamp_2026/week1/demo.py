@@ -1,11 +1,13 @@
-import json
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.completion_usage import CompletionUsage
 
-from llm_zoomcamp_2026.week1.agent import request_tool_call
+from llm_zoomcamp_2026.week1.agent import (
+    execute_tool_call,
+    request_tool_call,
+)
 from llm_zoomcamp_2026.week1.ingest import (
     build_index,
     load_documents,
@@ -124,32 +126,12 @@ def test_function_call() -> None:
 
     # Execute every tool call
     for call in tool_calls:
-        if call.function.name != "search":
-            raise ValueError(f"Unknown tool: {call.function.name}")
+        tool_message = execute_tool_call(call, rag)
+        messages.append(tool_message)
 
-        args = json.loads(call.function.arguments)
-
-        if set(args) != {"query"} or not isinstance(args["query"], str):
-            raise ValueError("Invalid search arguments")
-
-        results = rag.search(args["query"])
-
-        print(f"\nQuery: {args['query']}")
-        print(f"Results found: {len(results)}")
-
-        # for doc in results[:2]:
-        #     print(f"- {doc['question']}")
-
-        messages.append(
-            {
-                "role": "tool",
-                "tool_call_id": call.id,
-                "content": json.dumps(results),
-            }
-        )
-
+        print("Tool:", call.function.name)
         print(
-            "This is 3rd messages: ", messages, end="\n\n"
+            "Arguments:", call.function.arguments
         )  # print 3rd message to view how it work
 
     final_response = client.chat.completions.create(
