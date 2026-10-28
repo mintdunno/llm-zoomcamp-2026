@@ -41,19 +41,20 @@ def create_messages(
     question: str,
     system_prompt: str = SYSTEM_PROMPT,
 ) -> list[ChatCompletionMessageParam]:
+    """Create the initial system and user messages."""
     return [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": question},
     ]
 
 
-# Request tool call
 def chat_with_tools(
     client: OpenAI,
     model: str,
     messages: list[ChatCompletionMessageParam],
     tools: list[ChatCompletionFunctionToolParam],
 ) -> ChatCompletion:
+    """Send the conversation and let the model request tools."""
     return client.chat.completions.create(
         model=model,
         messages=messages,
@@ -62,11 +63,11 @@ def chat_with_tools(
     )
 
 
-# Execute search tool call
 def execute_tool_call(
     call: ChatCompletionMessageFunctionToolCall,
     rag: RAG,
 ) -> ChatCompletionToolMessageParam:
+    """Validate and execute a search tool call for the model."""
     if call.function.name != "search":
         raise ValueError(f"Unknown tool: {call.function.name}")
 
@@ -96,6 +97,7 @@ def agent_loop(
     rag: RAG,
     max_iterations: int = 5,
 ) -> str:
+    """Run the conversation and tools until an answer or the iteration limit."""
     if max_iterations < 1:
         raise ValueError("max_iterations must be >= 1")
 

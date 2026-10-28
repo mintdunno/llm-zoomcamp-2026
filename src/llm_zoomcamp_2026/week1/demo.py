@@ -25,6 +25,7 @@ def estimate_cost(
     output_price: float,
     cached_input_price: float | None = None,
 ) -> float:
+    """Estimate cost from token usage and prices per million tokens."""
     cached_tokens = 0
 
     if usage.prompt_tokens_details:
@@ -44,6 +45,7 @@ def estimate_cost(
 
 
 def main() -> None:
+    """Run the RAG example and display its answer and token usage."""
     load_dotenv()
 
     client = OpenAI(
@@ -88,6 +90,7 @@ def main() -> None:
 
 
 def test_function_call() -> None:
+    """Demonstrate a search tool call and the model's follow-up response."""
     load_dotenv()
 
     client = OpenAI(

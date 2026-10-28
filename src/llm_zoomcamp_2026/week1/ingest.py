@@ -5,6 +5,7 @@ FAQ_URL = "https://datatalks.club/faq"
 
 
 def load_documents() -> list[dict]:
+    """Download and combine FAQ documents from all courses."""
     response = requests.get(
         f"{FAQ_URL}/json/courses.json",
         timeout=30,
@@ -26,6 +27,7 @@ def load_documents() -> list[dict]:
 
 
 def build_index(documents: list[dict]) -> Index:
+    """Build a searchable index from FAQ documents."""
     index = Index(
         text_fields=["question", "section", "answer"],
         keyword_fields=["course"],

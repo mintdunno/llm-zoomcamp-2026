@@ -26,6 +26,7 @@ class RAG:
         model: str,
         course: str = "llm-zoomcamp",
     ):
+        """Configure the index, model, and course for RAG queries."""
         self.index = index
         self.client = client
         self.model = model
@@ -36,6 +37,7 @@ class RAG:
         query: str,
         num_results: int = 5,
     ) -> list[dict]:
+        """Search FAQs for the configured course."""
         return self.index.search(
             query,
             filter_dict={"course": self.course},
@@ -50,6 +52,7 @@ class RAG:
         self,
         documents: list[dict],
     ) -> str:
+        """Format FAQ documents as context for the model."""
         lines = []
 
         for doc in documents:
@@ -65,6 +68,7 @@ class RAG:
         question: str,
         documents: list[dict],
     ) -> str:
+        """Combine the question and FAQ context into a prompt."""
         context = self.build_context(documents)
 
         return PROMPT_TEMPLATE.format(
@@ -76,6 +80,7 @@ class RAG:
         self,
         prompt: str,
     ) -> tuple[str, CompletionUsage | None]:
+        """Send a prompt to the model and return its answer and token usage."""
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -98,6 +103,7 @@ class RAG:
         self,
         question: str,
     ) -> tuple[str, CompletionUsage | None]:
+        """Find relevant FAQs and use them to answer the question."""
         documents = self.search(question)
         prompt = self.build_prompt(question, documents)
 
