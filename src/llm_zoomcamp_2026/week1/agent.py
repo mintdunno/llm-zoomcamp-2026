@@ -60,6 +60,7 @@ def chat_with_tools(
         messages=messages,
         tools=tools,
         tool_choice="auto",
+        # parallel_tool_calls=False,
     )
 
 

@@ -50,7 +50,7 @@ def main() -> None:
     load_dotenv()
 
     client = OpenAI(
-        api_key=os.environ["AIBOX_API_KEY"],
+        api_key=os.environ["API_KEY"],
         base_url=os.environ["BASE_URL"],
     )
 
@@ -95,7 +95,7 @@ def test_function_call() -> None:
     load_dotenv()
 
     client = OpenAI(
-        api_key=os.environ["AIBOX_API_KEY"],
+        api_key=os.environ["API_KEY"],
         base_url=os.environ["BASE_URL"],
     )
 
@@ -166,7 +166,7 @@ def demo_agent_loop() -> None:
     load_dotenv()
 
     client = OpenAI(
-        api_key=os.environ["AIBOX_API_KEY"],
+        api_key=os.environ["API_KEY"],
         base_url=os.environ["BASE_URL"],
     )
 
