@@ -1,10 +1,17 @@
 import json
 
 from openai import OpenAI
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionFunctionToolParam,
+    ChatCompletionMessageFunctionToolCall,
+    ChatCompletionMessageParam,
+    ChatCompletionToolMessageParam,
+)
 
 from llm_zoomcamp_2026.week1.rag import RAG
 
-SEARCH_TOOL = {
+SEARCH_TOOL: ChatCompletionFunctionToolParam = {
     "type": "function",
     "function": {
         "name": "search",
@@ -29,8 +36,8 @@ def request_tool_call(
     client: OpenAI,
     model: str,
     question: str,
-):
-    messages = [
+) -> tuple[ChatCompletion, list[ChatCompletionMessageParam]]:
+    messages: list[ChatCompletionMessageParam] = [
         {
             "role": "system",
             "content": (
@@ -48,11 +55,14 @@ def request_tool_call(
         tool_choice="auto",
     )
 
-    return response, messages  # type: ignore
+    return response, messages
 
 
 # Execute search tool call
-def execute_tool_call(call, rag: RAG) -> dict[str, str]:
+def execute_tool_call(
+    call: ChatCompletionMessageFunctionToolCall,
+    rag: RAG,
+) -> ChatCompletionToolMessageParam:
     if call.function.name != "search":
         raise ValueError(f"Unknown tool: {call.function.name}")
 

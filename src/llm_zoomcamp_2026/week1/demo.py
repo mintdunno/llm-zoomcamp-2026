@@ -1,7 +1,9 @@
 import os
+from typing import cast
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 from openai.types.completion_usage import CompletionUsage
 
 from llm_zoomcamp_2026.week1.agent import (
@@ -98,17 +100,20 @@ def test_function_call() -> None:
         model=model,
         question="I just discovered LLM Zoomcamp. Can I join now?",
     )
-    print(
-        "This is first messages: ", messages, end="\n\n"
-    )  # print 1st message to view how it work
+
+    print("This is first messages:", messages, end="\n\n")
 
     message = response.choices[0].message
     tool_calls = message.tool_calls or []
 
-    messages.append(message.model_dump(exclude_none=True))
-    print(
-        "This is 2nd messages: ", messages, end="\n\n"
-    )  # print 2nd message to view how it work
+    messages.append(
+        cast(
+            ChatCompletionMessageParam,
+            message.model_dump(exclude_none=True),
+        )
+    )
+
+    print("This is 2nd messages:", messages, end="\n\n")
 
     if not tool_calls:
         print("Model did not request any tools.")
@@ -126,13 +131,14 @@ def test_function_call() -> None:
 
     # Execute every tool call
     for call in tool_calls:
+        if call.type != "function":
+            raise ValueError(f"Unsupported tool type: {call.type}")
+
         tool_message = execute_tool_call(call, rag)
         messages.append(tool_message)
 
         print("Tool:", call.function.name)
-        print(
-            "Arguments:", call.function.arguments
-        )  # print 3rd message to view how it work
+        print("Arguments:", call.function.arguments, end="\n\n")
 
     final_response = client.chat.completions.create(
         model=model,
@@ -140,7 +146,7 @@ def test_function_call() -> None:
     )
 
     print(
-        "This is response from llm: ",
+        "This is response from llm:",
         final_response.choices[0].message.model_dump(),
     )
 
