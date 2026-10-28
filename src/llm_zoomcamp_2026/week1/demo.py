@@ -182,7 +182,9 @@ def demo_agent_loop() -> None:
     )
 
     question = (
-        "I just discovered LLM Zoomcamp. Can I join now? How do I get course updates?"
+        "If I join LLM Zoomcamp late, "
+        "can I still earn a certificate? "
+        "What are the exact requirements?"
     )
 
     answer = agent_loop(

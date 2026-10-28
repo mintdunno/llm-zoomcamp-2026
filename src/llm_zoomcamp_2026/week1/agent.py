@@ -83,6 +83,13 @@ def execute_tool_call(
 
     results = rag.search(args["query"])
 
+    # Check rag quality by viewing logging
+    print(f"Query: {args['query']}")
+    print(f"Documents found: {len(results)}")
+
+    for i, doc in enumerate(results[:3], start=1):
+        print(f"{i}. {doc['question']}")
+
     return {
         "role": "tool",
         "tool_call_id": call.id,
