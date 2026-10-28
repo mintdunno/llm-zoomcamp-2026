@@ -175,17 +175,24 @@ def demo_agent_loop() -> None:
     documents = load_documents()
     index = build_index(documents)
 
+    instructions = """
+    You are a course teaching assistant.
+
+    First search for information relevant to the question.
+    Analyze the search results before making another search.
+
+    If information is missing, search again using
+    different keywords based on the previous results.
+
+    Answer only using the retrieved FAQ information.
+    """.strip()
+
     rag = RAG(
         index=index,
         client=client,
         model=model,
     )
-
-    question = (
-        "If I join LLM Zoomcamp late, "
-        "can I still earn a certificate? "
-        "What are the exact requirements?"
-    )
+    question = "I just discovered the course. Can I still join it?"
 
     answer = agent_loop(
         client=client,
@@ -193,6 +200,7 @@ def demo_agent_loop() -> None:
         question=question,
         rag=rag,
         max_iterations=5,
+        system_prompt=instructions,
     )
 
     print("\nFinal answer:", answer)

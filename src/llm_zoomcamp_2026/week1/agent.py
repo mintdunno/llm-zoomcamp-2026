@@ -104,12 +104,13 @@ def agent_loop(
     question: str,
     rag: RAG,
     max_iterations: int = 5,
+    system_prompt: str = SYSTEM_PROMPT,
 ) -> str:
     """Run the conversation and tools until an answer or the iteration limit."""
     if max_iterations < 1:
         raise ValueError("max_iterations must be >= 1")
 
-    messages = create_messages(question)
+    messages = create_messages(question, system_prompt=system_prompt)
 
     for iteration in range(max_iterations):
         print(f"Iteration {iteration + 1}")
