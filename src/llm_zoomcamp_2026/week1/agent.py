@@ -1,4 +1,5 @@
 import json
+from typing import cast
 
 from openai import OpenAI
 from openai.types.chat import (
@@ -31,31 +32,34 @@ SEARCH_TOOL: ChatCompletionFunctionToolParam = {
 }
 
 
-# Request tool call
-def request_tool_call(
-    client: OpenAI,
-    model: str,
+SYSTEM_PROMPT = (
+    "You are a course assistant. Use the search tool for course-specific facts."
+)
+
+
+def create_messages(
     question: str,
-) -> tuple[ChatCompletion, list[ChatCompletionMessageParam]]:
-    messages: list[ChatCompletionMessageParam] = [
-        {
-            "role": "system",
-            "content": (
-                "You are a course assistant. "
-                "Use the search tool for course-specific facts."
-            ),
-        },
+    system_prompt: str = SYSTEM_PROMPT,
+) -> list[ChatCompletionMessageParam]:
+    return [
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": question},
     ]
 
-    response = client.chat.completions.create(
+
+# Request tool call
+def chat_with_tools(
+    client: OpenAI,
+    model: str,
+    messages: list[ChatCompletionMessageParam],
+    tools: list[ChatCompletionFunctionToolParam],
+) -> ChatCompletion:
+    return client.chat.completions.create(
         model=model,
         messages=messages,
-        tools=[SEARCH_TOOL],
+        tools=tools,
         tool_choice="auto",
     )
-
-    return response, messages
 
 
 # Execute search tool call
@@ -83,3 +87,52 @@ def execute_tool_call(
         "tool_call_id": call.id,
         "content": json.dumps(results, ensure_ascii=False),
     }
+
+
+def agent_loop(
+    client: OpenAI,
+    model: str,
+    question: str,
+    rag: RAG,
+    max_iterations: int = 5,
+) -> str:
+    if max_iterations < 1:
+        raise ValueError("max_iterations must be >= 1")
+
+    messages = create_messages(question)
+
+    for iteration in range(max_iterations):
+        print(f"Iteration {iteration + 1}")
+
+        response = chat_with_tools(
+            client=client,
+            model=model,
+            messages=messages,
+            tools=[SEARCH_TOOL],
+        )
+
+        message = response.choices[0].message
+
+        messages.append(
+            cast(
+                ChatCompletionMessageParam,
+                message.model_dump(exclude_none=True),
+            )
+        )
+
+        tool_calls = message.tool_calls or []
+
+        if not tool_calls:
+            return message.content or ""
+
+        if iteration == max_iterations - 1:
+            break
+
+        for call in tool_calls:
+            if call.type != "function":
+                raise ValueError(f"Unsupported tool type: {call.type}")
+
+            tool_result = execute_tool_call(call, rag)
+            messages.append(tool_result)
+
+    raise RuntimeError("Agent exceeded max iterations")

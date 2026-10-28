@@ -7,8 +7,10 @@ from openai.types.chat import ChatCompletionMessageParam
 from openai.types.completion_usage import CompletionUsage
 
 from llm_zoomcamp_2026.week1.agent import (
+    SEARCH_TOOL,
+    chat_with_tools,
+    create_messages,
     execute_tool_call,
-    request_tool_call,
 )
 from llm_zoomcamp_2026.week1.ingest import (
     build_index,
@@ -95,10 +97,15 @@ def test_function_call() -> None:
 
     model = os.environ["MODEL"]
 
-    response, messages = request_tool_call(
+    messages = create_messages("I just discovered LLM Zoomcamp. Can I join now?")
+
+    messages = create_messages("I just discovered LLM Zoomcamp. Can I join now?")
+
+    response = chat_with_tools(
         client=client,
         model=model,
-        question="I just discovered LLM Zoomcamp. Can I join now?",
+        messages=messages,
+        tools=[SEARCH_TOOL],
     )
 
     print("This is first messages:", messages, end="\n\n")
