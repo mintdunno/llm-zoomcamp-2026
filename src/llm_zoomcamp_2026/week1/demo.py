@@ -8,6 +8,7 @@ from openai.types.completion_usage import CompletionUsage
 
 from llm_zoomcamp_2026.week1.agent import (
     SEARCH_TOOL,
+    agent_loop,
     chat_with_tools,
     create_messages,
     execute_tool_call,
@@ -159,6 +160,40 @@ def test_function_call() -> None:
         "This is response from llm:",
         final_response.choices[0].message.model_dump(),
     )
+
+
+def demo_agent_loop() -> None:
+    load_dotenv()
+
+    client = OpenAI(
+        api_key=os.environ["AIBOX_API_KEY"],
+        base_url=os.environ["BASE_URL"],
+    )
+
+    model = os.environ["MODEL"]
+
+    documents = load_documents()
+    index = build_index(documents)
+
+    rag = RAG(
+        index=index,
+        client=client,
+        model=model,
+    )
+
+    question = (
+        "I just discovered LLM Zoomcamp. Can I join now? How do I get course updates?"
+    )
+
+    answer = agent_loop(
+        client=client,
+        model=model,
+        question=question,
+        rag=rag,
+        max_iterations=5,
+    )
+
+    print("\nFinal answer:", answer)
 
 
 if __name__ == "__main__":

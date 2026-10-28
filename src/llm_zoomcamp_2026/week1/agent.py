@@ -134,6 +134,9 @@ def agent_loop(
             if call.type != "function":
                 raise ValueError(f"Unsupported tool type: {call.type}")
 
+            print(f"Tool: {call.function.name}")
+            print(f"Arguments: {call.function.arguments}")
+
             tool_result = execute_tool_call(call, rag)
             messages.append(tool_result)
 
