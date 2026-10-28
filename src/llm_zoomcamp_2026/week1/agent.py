@@ -1,4 +1,8 @@
+import json
+
 from openai import OpenAI
+
+from llm_zoomcamp_2026.week1.rag import RAG
 
 SEARCH_TOOL = {
     "type": "function",
@@ -44,3 +48,26 @@ def request_tool_call(
     )
 
     return response, messages  # type: ignore
+
+
+def execute_tool_call(call, rag: RAG) -> dict[str, str]:
+    if call.function.name != "search":
+        raise ValueError(f"Unknown tool: {call.function.name}")
+
+    args = json.loads(call.function.arguments)
+
+    if (
+        not isinstance(args, dict)
+        or set(args) != {"query"}
+        or not isinstance(args["query"], str)
+        or not args["query"].strip()
+    ):
+        raise ValueError("Invalid search arguments")
+
+    results = rag.search(args["query"])
+
+    return {
+        "role": "tool",
+        "tool_call_id": call.id,
+        "content": json.dumps(results, ensure_ascii=False),
+    }
