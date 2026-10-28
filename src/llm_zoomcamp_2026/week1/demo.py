@@ -103,8 +103,6 @@ def test_function_call() -> None:
 
     messages = create_messages("I just discovered LLM Zoomcamp. Can I join now?")
 
-    messages = create_messages("I just discovered LLM Zoomcamp. Can I join now?")
-
     response = chat_with_tools(
         client=client,
         model=model,
@@ -176,15 +174,18 @@ def demo_agent_loop() -> None:
     index = build_index(documents)
 
     instructions = """
-    You are a course teaching assistant.
+    You are an LLM Zoomcamp teaching assistant.
 
-    First search for information relevant to the question.
-    Analyze the search results before making another search.
+    Answer only questions related to LLM Zoomcamp.
 
-    If information is missing, search again using
-    different keywords based on the previous results.
+    Use the search tool to find relevant FAQ information.
+    If results are insufficient, try different keywords.
 
-    Answer only using the retrieved FAQ information.
+    Only use facts supported by the FAQ.
+    If you cannot find the answer, say you don't know.
+
+    If the question is unrelated to the course,
+    politely decline to answer.
     """.strip()
 
     rag = RAG(
@@ -192,7 +193,7 @@ def demo_agent_loop() -> None:
         client=client,
         model=model,
     )
-    question = "I just discovered the course. Can I still join it?"
+    question = "What's the Queen's Gambit?"
 
     answer = agent_loop(
         client=client,
