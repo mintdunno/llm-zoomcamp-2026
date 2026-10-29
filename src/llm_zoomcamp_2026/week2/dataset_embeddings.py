@@ -1,6 +1,5 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from tqdm.auto import tqdm
 
 from llm_zoomcamp_2026.week1.ingest import load_documents
 
@@ -12,12 +11,13 @@ texts = [doc["question"] + " " + doc["answer"] for doc in documents]
 batch_size = 50
 vectors = []
 
-for i in tqdm(range(0, len(texts), batch_size)):
-    batch = texts[i : i + batch_size]
-    batch_vectors = model.encode(batch)
-    vectors.extend(batch_vectors)
+X = model.encode(
+    texts,
+    batch_size=50,
+    show_progress_bar=True,
+)
 
-X = np.array(vectors)
+print(X.shape)
 
 print("Documents:", len(documents))
 print("Matrix shape:", X.shape)
