@@ -1,55 +1,38 @@
-import os
 from pathlib import Path
 
-import numpy as np
-from dotenv import load_dotenv
-from openai import OpenAI
+from sentence_transformers import SentenceTransformer
 from sqlitesearch import VectorSearchIndex
 
 from llm_zoomcamp_2026.week1.ingest import load_documents
 
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.environ["API_KEY"],
-    base_url=os.environ["BASE_URL"],
-)
-
-documents = load_documents()
-
-texts = [doc["question"] + " " + doc["answer"] for doc in documents]
-
-db_path = Path("faq_vectors2.db")
+db_path = Path("faq_vectors.db")
 
 if db_path.exists():
     raise SystemExit("Database already exists. Skip ingestion.")
 
-batch_size = 20
-vectors = []
+# Load documents
+documents = load_documents()
+texts = [doc["question"] + " " + doc["answer"] for doc in documents]
 
-for i in range(0, len(texts), batch_size):
-    batch = texts[i : i + batch_size]
+# Local embedding
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    response = client.embeddings.create(
-        model=os.environ["EMBEDDING_MODEL"],
-        input=batch,
-    )
+X = model.encode(
+    texts,
+    batch_size=50,
+    show_progress_bar=True,
+)
 
-    batch_vectors = [item.embedding for item in response.data]
-
-    vectors.extend(batch_vectors)
-
-vectors = np.array(vectors, dtype=np.float32)
-
+# Store in SQLite
 index = VectorSearchIndex(
     keyword_fields=["course"],
     mode="ivf",
-    db_path="faq_vectors2.db",
+    db_path=str(db_path),
 )
 
-index.fit(vectors, documents)
+index.fit(X, documents)
 
-print("Vector shape:", vectors.shape)
-print("Saved to faq_vectors.db")
+print("Vector shape:", X.shape)
+print("Saved to:", db_path)
 
 index.close()
