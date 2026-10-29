@@ -9,6 +9,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+inspect_db.py
 
 # Jupyter
 .ipynb_checkpoints/
