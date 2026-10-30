@@ -1,7 +1,7 @@
 [project]
 name = "llm-zoomcamp-2026"
 version = "0.1.0"
-description = "Add your description here"
+description = "Learning exercises and experiments from LLM Zoomcamp 2026"
 readme = "README.md"
 authors = [
     { name = "Tran Ngoc Minh", email = "135308254+mintdunno@users.noreply.github.com" }

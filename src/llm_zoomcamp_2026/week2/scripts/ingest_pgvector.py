@@ -1,4 +1,7 @@
-"""Upsert FAQ documents and embeddings into PostgreSQL."""
+"""Upsert FAQ documents and embeddings into PostgreSQL.
+
+Week: 2 | Lesson: 8 | Type: Script
+"""
 
 import hashlib
 import json
@@ -105,7 +108,7 @@ def main() -> None:
         with conn.cursor() as cursor:
             cursor.executemany(UPSERT_SQL, records)
 
-        # Commit on success, rollback on exception.
+        # The connection context commits on success and rolls back on failure.
 
     print(f"Successfully processed {len(records)} documents.")
 

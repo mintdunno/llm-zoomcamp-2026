@@ -21,22 +21,9 @@ Code is grouped by week under [`src/llm_zoomcamp_2026`](src/llm_zoomcamp_2026/):
 - **Week 2 — Vector Search:** implemented embedding experiments, in-memory vector search and RAG, SQLite ingestion and RAG, and pgvector ingestion and search. These are learning implementations; their presence does not imply all course exercises or homework are complete.
 - **In progress / planned:** no specific additional work is recorded in the repository. The course's optional ONNX embedder has no implementation here.
 
-## Learning map
+## Learning maps
 
-Topics follow the official [Agentic RAG](https://github.com/DataTalksClub/llm-zoomcamp/tree/main/01-agentic-rag) and [Vector Search](https://github.com/DataTalksClub/llm-zoomcamp/tree/main/02-vector-search) modules; examples may combine topics or extend them.
-
-| Week | Course topic | Implementation | Purpose |
-| --- | --- | --- | --- |
-| 1 | FAQ dataset and search | [ingest.py](src/llm_zoomcamp_2026/week1/core/ingest.py) | Download FAQs and build a keyword index |
-| 1 | RAG pipeline and helper | [rag.py](src/llm_zoomcamp_2026/week1/core/rag.py), [basic_rag.py](src/llm_zoomcamp_2026/week1/demos/basic_rag.py) | Retrieve, build context, and generate an answer |
-| 1 | Function calling | [tool_calling.py](src/llm_zoomcamp_2026/week1/demos/tool_calling.py) | Execute requested search calls |
-| 1 | Agentic loop | [agent.py](src/llm_zoomcamp_2026/week1/core/agent.py), [manual_agent.py](src/llm_zoomcamp_2026/week1/demos/manual_agent.py) | Run a bounded tool loop |
-| 1 | ToyAIKit | [framework_agent.py](src/llm_zoomcamp_2026/week1/demos/framework_agent.py) | Run a framework-driven agent |
-| 2 | Embeddings | [embedding_similarity.py](src/llm_zoomcamp_2026/week2/labs/embedding_similarity.py), [api_embeddings.py](src/llm_zoomcamp_2026/week2/labs/api_embeddings.py) | Compare local vectors; explore an API embedding provider (personal extension) |
-| 2 | Dataset embeddings and vector search | [inmemory_vector_search.py](src/llm_zoomcamp_2026/week2/labs/inmemory_vector_search.py) | Explore matrix scoring and minsearch |
-| 2 | RAG with vector search | [vector_rag.py](src/llm_zoomcamp_2026/week2/core/vector_rag.py), [inmemory_vector_rag.py](src/llm_zoomcamp_2026/week2/demos/inmemory_vector_rag.py) | Replace keyword retrieval with vectors |
-| 2 | Vector search with sqlitesearch | [ingest_sqlite.py](src/llm_zoomcamp_2026/week2/scripts/ingest_sqlite.py), [sqlite_vector_rag.py](src/llm_zoomcamp_2026/week2/demos/sqlite_vector_rag.py) | Persist vectors and run RAG |
-| 2 | Vector search with pgvector | [ingest_pgvector.py](src/llm_zoomcamp_2026/week2/scripts/ingest_pgvector.py), [pgvector_search.py](src/llm_zoomcamp_2026/week2/demos/pgvector_search.py) | Upsert and query FAQ vectors in PostgreSQL |
+Explore the complete lesson-by-lesson maps for [Week 1 — Agentic RAG](learning_maps/week1_agentic_rag.md) and [Week 2 — Vector Search](learning_maps/week2_vector_search.md), including progress, source files, and commands. See the [map index](learning_maps/README.md) for status definitions.
 
 ## Setup
 

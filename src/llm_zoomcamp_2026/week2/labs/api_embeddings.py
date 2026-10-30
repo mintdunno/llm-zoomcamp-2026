@@ -1,4 +1,7 @@
-"""Lab: Request embeddings from an OpenAI-compatible API."""
+"""Lab: Request embeddings from an OpenAI-compatible API.
+
+Week: 2 | Lesson: 2 (personal extension) | Type: Lab
+"""
 
 import os
 
@@ -8,7 +11,7 @@ from openai import OpenAI
 
 
 def main() -> None:
-    """Run this example."""
+    """Request and inspect two API embeddings."""
     load_dotenv()
 
     client = OpenAI(

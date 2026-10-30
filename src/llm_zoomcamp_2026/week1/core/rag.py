@@ -1,4 +1,7 @@
-"""Reusable keyword-based RAG pipeline."""
+"""Reusable keyword-based RAG pipeline.
+
+Week: 1 | Lesson: 5–8 | Type: Core
+"""
 
 from minsearch import Index
 from openai import OpenAI

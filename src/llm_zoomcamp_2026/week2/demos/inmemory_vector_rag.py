@@ -1,4 +1,7 @@
-"""Demo: Run RAG with an in-memory vector index."""
+"""Demo: Run RAG with an in-memory vector index.
+
+Week: 2 | Lesson: 6 | Type: Demo
+"""
 
 import os
 

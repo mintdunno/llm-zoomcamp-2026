@@ -1,1 +1,4 @@
-"""Demos for week1."""
+"""Agentic RAG demonstrations.
+
+Week: 1 | Lesson: multiple | Type: Package
+"""

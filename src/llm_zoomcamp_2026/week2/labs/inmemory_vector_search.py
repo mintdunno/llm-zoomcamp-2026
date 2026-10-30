@@ -1,5 +1,9 @@
-"""Lab: Embed the FAQ dataset and explore vector search."""
+"""Lab: Embed the FAQ dataset and explore vector search.
 
+Week: 2 | Lesson: 3–5 | Type: Lab
+"""
+
+import numpy as np
 from minsearch import VectorSearch
 from sentence_transformers import SentenceTransformer
 
@@ -7,12 +11,11 @@ from llm_zoomcamp_2026.week1.core.ingest import load_documents
 
 
 def main() -> None:
-    """Run this example."""
+    """Compare manual dot-product ranking with minsearch results."""
     model = SentenceTransformer("all-MiniLM-L6-v2")
     documents = load_documents()
 
     texts = [doc["question"] + " " + doc["answer"] for doc in documents]
-
 
     X = model.encode(
         texts,
@@ -30,24 +33,19 @@ def main() -> None:
 
     v_query = model.encode(query)
     # Dot products equal cosine similarity only for normalized vectors.
-    # import numpy as np
-    # scores = X.dot(v_query)
+    scores = X.dot(v_query)
+    best_index = np.argmax(scores)
+    top_k_indices = np.argsort(scores)[-5:][::-1]
 
-    # idx = np.argmax(scores)
-    # best_5 = np.argsort(scores)[-5:][::-1]
+    print("Best index:", best_index)
+    print("Best score:", scores[best_index])
+    print("Best document:", documents[best_index])
+    print("\nBest 5 documents by dot product:")
+    for rank, index in enumerate(top_k_indices, start=1):
+        print(f"{rank}. {documents[index]}")
+        print(f"Score: {scores[index]}")
 
-    # print("Best index:", idx)
-    # print("Best score:", scores[idx])
-    # print("Best document:", documents[idx])
-
-    # print("\nBest 5 documents:")
-
-    # ordinals = ["1st", "2nd", "3rd", "4th", "5th"]
-
-    # for rank, i in enumerate(best_5):
-    #     print(f"{ordinals[rank]} document: {documents[i]}")
-    #     print(f"Score: {scores[i]}")
-
+    print("\nminsearch results:")
     vindex = VectorSearch(keyword_fields=["course"])
     vindex.fit(X, documents)
 

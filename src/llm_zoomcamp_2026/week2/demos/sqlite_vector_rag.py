@@ -1,4 +1,7 @@
-"""Demo: Search a SQLite vector index and generate an answer."""
+"""Demo: Search a SQLite vector index and generate an answer.
+
+Week: 2 | Lesson: 7 | Type: Demo
+"""
 
 import os
 from pathlib import Path
@@ -12,7 +15,7 @@ from llm_zoomcamp_2026.week2.core.vector_rag import RAGVector
 
 
 def main() -> None:
-    """Run this example."""
+    """Retrieve FAQs from SQLite and generate an answer."""
     load_dotenv()
 
     db_path = Path("faq_vectors.db")

@@ -1,10 +1,13 @@
-"""Lab: Compare text embeddings with dot products."""
+"""Lab: Compare text embeddings with dot products.
+
+Week: 2 | Lesson: 2 | Type: Lab
+"""
 
 from sentence_transformers import SentenceTransformer
 
 
 def main() -> None:
-    """Run this example."""
+    """Compare each question with the sample FAQ answer."""
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
     q1 = "Can I still join the course after the start date?"

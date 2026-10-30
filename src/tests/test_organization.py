@@ -1,14 +1,52 @@
-"""Offline checks for retrieval and module imports."""
+"""Offline checks for retrieval and module imports.
+
+Week: 1–2 | Lesson: multiple | Type: Test
+"""
 
 import importlib
+import io
 import pkgutil
 import unittest
+from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import llm_zoomcamp_2026
 from llm_zoomcamp_2026.week1.core.ingest import build_index
 from llm_zoomcamp_2026.week1.core.rag import RAG
 from llm_zoomcamp_2026.week2.core.vector_rag import RAGVector
+
+
+class VectorLabTests(unittest.TestCase):
+    def test_numpy_ranking_and_minsearch_both_run(self):
+        import numpy as np
+
+        from llm_zoomcamp_2026.week2.labs import inmemory_vector_search as lab
+
+        documents = [
+            {"question": "First", "answer": "A", "course": "c"},
+            {"question": "Second", "answer": "B", "course": "c"},
+            {"question": "Third", "answer": "C", "course": "c"},
+        ]
+        model = Mock()
+        model.encode.side_effect = [
+            np.array([[1, 0], [0, 1], [2, 0]]), np.array([1, 0])
+        ]
+        index = Mock()
+        index.search.return_value = [documents[0]]
+        output = io.StringIO()
+        with (
+            patch.object(lab, "load_documents", return_value=documents),
+            patch.object(lab, "SentenceTransformer", return_value=model),
+            patch.object(lab, "VectorSearch", return_value=index),
+            redirect_stdout(output),
+        ):
+            lab.main()
+        text = output.getvalue()
+        self.assertIn("Best index: 2", text)
+        self.assertLess(text.index("Third"), text.index("First"))
+        self.assertIn("1. First", text)
+        index.fit.assert_called_once()
+        index.search.assert_called_once()
 
 
 class RetrievalTests(unittest.TestCase):

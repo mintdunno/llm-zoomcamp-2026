@@ -1,4 +1,7 @@
-"""Reusable vector-based RAG pipeline."""
+"""Reusable vector-based RAG pipeline.
+
+Week: 2 | Lesson: 6–7 | Type: Core
+"""
 
 from typing import Any
 

@@ -1,4 +1,7 @@
-"""Ingest FAQ embeddings into a new SQLite index."""
+"""Ingest FAQ embeddings into a new SQLite index.
+
+Week: 2 | Lesson: 7 | Type: Script
+"""
 
 from pathlib import Path
 
@@ -9,7 +12,7 @@ from llm_zoomcamp_2026.week1.core.ingest import load_documents
 
 
 def main() -> None:
-    """Run this ingestion task."""
+    """Create a SQLite vector index from FAQ documents."""
     db_path = Path("faq_vectors.db")
 
     if db_path.exists():

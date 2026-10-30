@@ -1,13 +1,16 @@
-"""Demo: Run keyword-based RAG and display token usage."""
+"""Demo: Run keyword-based RAG and display token usage.
+
+Week: 1 | Lesson: 3, 6–8 | Type: Demo
+"""
 
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from openai.types.completion_usage import CompletionUsage
 
 from llm_zoomcamp_2026.week1.core.ingest import build_index, load_documents
 from llm_zoomcamp_2026.week1.core.rag import RAG
-from openai.types.completion_usage import CompletionUsage
 
 
 def estimate_cost(

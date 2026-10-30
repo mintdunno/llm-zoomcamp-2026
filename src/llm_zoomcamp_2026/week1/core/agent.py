@@ -1,4 +1,7 @@
-"""Reusable manual agent loop and search tool."""
+"""Reusable manual agent loop and search tool.
+
+Week: 1 | Lesson: 13–14 | Type: Core
+"""
 
 import json
 from typing import cast
@@ -86,7 +89,7 @@ def execute_tool_call(
 
     results = rag.search(args["query"])
 
-    # Check rag quality by viewing logging
+    # Show retrieved questions for inspection; this is not a quality evaluation.
     print(f"Query: {args['query']}")
     print(f"Documents found: {len(results)}")
 

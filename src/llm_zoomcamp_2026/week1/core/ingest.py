@@ -1,4 +1,7 @@
-"""Load FAQ documents and build a keyword index."""
+"""Load FAQ documents and build a keyword index.
+
+Week: 1 | Lesson: 4–5, 8 | Type: Core
+"""
 
 import requests
 from minsearch import Index

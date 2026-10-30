@@ -1,13 +1,16 @@
-"""Demo: Run a manual agent loop with FAQ search."""
+"""Demo: Run a manual agent loop with FAQ search.
+
+Week: 1 | Lesson: 11, 14 | Type: Demo
+"""
 
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from llm_zoomcamp_2026.week1.core.agent import agent_loop
 from llm_zoomcamp_2026.week1.core.ingest import build_index, load_documents
 from llm_zoomcamp_2026.week1.core.rag import RAG
-from llm_zoomcamp_2026.week1.core.agent import agent_loop
 
 
 def main() -> None:

@@ -1,4 +1,7 @@
-"""LLM Zoomcamp learning examples."""
+"""LLM Zoomcamp learning examples.
+
+Week: 1–2 | Lesson: multiple | Type: Package
+"""
 
 def main() -> None:
     """Print a greeting from the package."""

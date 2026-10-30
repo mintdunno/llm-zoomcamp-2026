@@ -1,19 +1,23 @@
-"""Demo: Execute a requested search tool and return its result to the model."""
+"""Demo: Execute a requested search tool and return its result to the model.
+
+Week: 1 | Lesson: 13 | Type: Demo
+"""
 
 import os
+from typing import cast
 
 from dotenv import load_dotenv
 from openai import OpenAI
-
-from llm_zoomcamp_2026.week1.core.ingest import build_index, load_documents
-from llm_zoomcamp_2026.week1.core.rag import RAG
-from typing import cast
-
 from openai.types.chat import ChatCompletionMessageParam
 
 from llm_zoomcamp_2026.week1.core.agent import (
-    SEARCH_TOOL, chat_with_tools, create_messages, execute_tool_call,
+    SEARCH_TOOL,
+    chat_with_tools,
+    create_messages,
+    execute_tool_call,
 )
+from llm_zoomcamp_2026.week1.core.ingest import build_index, load_documents
+from llm_zoomcamp_2026.week1.core.rag import RAG
 
 
 def main() -> None:

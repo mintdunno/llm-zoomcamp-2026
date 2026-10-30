@@ -1,14 +1,14 @@
-"""Demo: Run an FAQ agent with ToyAIKit."""
+"""Demo: Run an FAQ agent with ToyAIKit.
+
+Week: 1 | Lesson: 15 | Type: Demo
+"""
 
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from toyaikit.chat.interface import StdOutputInterface
-from toyaikit.chat.runners import (
-    DisplayingRunnerCallback,
-    OpenAIChatCompletionsRunner,
-)
+from toyaikit.chat.runners import OpenAIChatCompletionsRunner
 from toyaikit.llm import OpenAIChatCompletionsClient
 from toyaikit.tools import Tools
 
@@ -17,7 +17,7 @@ from llm_zoomcamp_2026.week1.core.rag import RAG
 
 
 def main() -> None:
-    """Run this example."""
+    """Run the FAQ agent through the ToyAIKit chat interface."""
     load_dotenv()
 
     client = OpenAI(
@@ -39,8 +39,6 @@ def main() -> None:
     print(agent_tools.get_tools())
 
     chat_interface = StdOutputInterface()
-
-    callback = DisplayingRunnerCallback(chat_interface)
 
     llm_client = OpenAIChatCompletionsClient(
         model=os.environ["MODEL"],

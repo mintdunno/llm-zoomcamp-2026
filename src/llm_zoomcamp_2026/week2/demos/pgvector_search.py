@@ -1,4 +1,7 @@
-"""Demo: Search FAQ embeddings with PostgreSQL and pgvector."""
+"""Demo: Search FAQ embeddings with PostgreSQL and pgvector.
+
+Week: 2 | Lesson: 8 | Type: Demo
+"""
 
 import os
 import time
