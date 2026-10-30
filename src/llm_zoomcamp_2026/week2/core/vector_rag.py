@@ -1,8 +1,10 @@
+"""Reusable vector-based RAG pipeline."""
+
 from typing import Any
 
 from sentence_transformers import SentenceTransformer
 
-from llm_zoomcamp_2026.week1.rag import RAG
+from llm_zoomcamp_2026.week1.core.rag import RAG
 
 
 class RAGVector(RAG):

@@ -1,3 +1,5 @@
+"""Demo: Run RAG with an in-memory vector index."""
+
 import os
 
 from dotenv import load_dotenv
@@ -5,8 +7,8 @@ from minsearch import VectorSearch
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 
-from llm_zoomcamp_2026.week1.ingest import load_documents
-from llm_zoomcamp_2026.week2.vector_rag import RAGVector
+from llm_zoomcamp_2026.week1.core.ingest import load_documents
+from llm_zoomcamp_2026.week2.core.vector_rag import RAGVector
 
 
 def main() -> None:

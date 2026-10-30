@@ -1,3 +1,5 @@
+"""Reusable keyword-based RAG pipeline."""
+
 from minsearch import Index
 from openai import OpenAI
 from openai.types.completion_usage import CompletionUsage
@@ -19,6 +21,8 @@ Context:
 
 
 class RAG:
+    """Retrieve FAQ context and generate answers with an LLM."""
+
     def __init__(
         self,
         index: Index,

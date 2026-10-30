@@ -1,3 +1,5 @@
+"""Upsert FAQ documents and embeddings into PostgreSQL."""
+
 import hashlib
 import json
 import os
@@ -7,7 +9,7 @@ from dotenv import load_dotenv
 from pgvector.psycopg import register_vector
 from sentence_transformers import SentenceTransformer
 
-from llm_zoomcamp_2026.week1.ingest import load_documents
+from llm_zoomcamp_2026.week1.core.ingest import load_documents
 
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIMENSIONS = 384
@@ -97,6 +99,7 @@ def main() -> None:
 
     # 6. Connect to PostgreSQL and upsert records.
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
+        # Register adapters so psycopg can send NumPy vectors.
         register_vector(conn)
 
         with conn.cursor() as cursor:

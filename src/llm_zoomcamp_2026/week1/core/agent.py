@@ -1,3 +1,5 @@
+"""Reusable manual agent loop and search tool."""
+
 import json
 from typing import cast
 
@@ -10,7 +12,7 @@ from openai.types.chat import (
     ChatCompletionToolMessageParam,
 )
 
-from llm_zoomcamp_2026.week1.rag import RAG
+from llm_zoomcamp_2026.week1.core.rag import RAG
 
 SEARCH_TOOL: ChatCompletionFunctionToolParam = {
     "type": "function",

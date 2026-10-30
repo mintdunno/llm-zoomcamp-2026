@@ -1,3 +1,5 @@
+"""Demo: Search FAQ embeddings with PostgreSQL and pgvector."""
+
 import os
 import time
 
@@ -6,10 +8,11 @@ from dotenv import load_dotenv
 from pgvector.psycopg import register_vector
 from sentence_transformers import SentenceTransformer
 
-from llm_zoomcamp_2026.week2.pgvector_ingest import EMBEDDING_MODEL
+from llm_zoomcamp_2026.week2.scripts.ingest_pgvector import EMBEDDING_MODEL
 
 
 def main() -> None:
+    """Find and display the nearest FAQ documents."""
     load_dotenv()
 
     question = "Can I still join the course after it started?"
@@ -45,6 +48,7 @@ def main() -> None:
         print("Searching vectors...", flush=True)
         start = time.perf_counter()
 
+        # <=> is cosine distance; bound parameters keep values separate from SQL.
         results = conn.execute(
             """
             SELECT

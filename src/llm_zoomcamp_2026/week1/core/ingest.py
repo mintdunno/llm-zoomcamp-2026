@@ -1,3 +1,5 @@
+"""Load FAQ documents and build a keyword index."""
+
 import requests
 from minsearch import Index
 
