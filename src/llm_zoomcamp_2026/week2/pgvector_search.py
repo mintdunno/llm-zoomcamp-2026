@@ -1,4 +1,5 @@
 import os
+import time
 
 import psycopg
 from dotenv import load_dotenv
@@ -15,13 +16,34 @@ def main() -> None:
     course = "llm-zoomcamp"
     top_k = 5
 
-    # 1. Embed the user question.
+    # 1. Load embedding model.
+    print("Loading embedding model...", flush=True)
+    start = time.perf_counter()
+
     embedder = SentenceTransformer(EMBEDDING_MODEL)
+
+    print(f"Model loaded: {time.perf_counter() - start:.4f}s")
+
+    # 2. Encode the query.
+    print("Encoding query...", flush=True)
+    start = time.perf_counter()
+
     query_vector = embedder.encode(question)
 
-    # 2. Search for nearest documents.
+    print(f"Query encoded: {time.perf_counter() - start:.4f}s")
+
+    # 3. Connect to PostgreSQL.
+    print("Connecting to PostgreSQL...", flush=True)
+    start = time.perf_counter()
+
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         register_vector(conn)
+
+        print(f"DB connected: {time.perf_counter() - start:.4f}s")
+
+        # 4. Execute vector search.
+        print("Searching vectors...", flush=True)
+        start = time.perf_counter()
 
         results = conn.execute(
             """
@@ -44,7 +66,9 @@ def main() -> None:
             ),
         ).fetchall()
 
-    # 3. Display top-k results.
+        print(f"Vector search: {time.perf_counter() - start:.4f}s")
+
+    # 5. Display results.
     for rank, (doc_question, answer, distance) in enumerate(results, start=1):
         similarity = 1 - distance
 
