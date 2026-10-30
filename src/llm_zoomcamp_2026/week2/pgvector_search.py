@@ -36,7 +36,7 @@ def main() -> None:
     print("Connecting to PostgreSQL...", flush=True)
     start = time.perf_counter()
 
-    with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
+    with psycopg.connect(os.environ["DATABASE_URL"], connect_timeout=5) as conn:
         register_vector(conn)
 
         print(f"DB connected: {time.perf_counter() - start:.4f}s")
