@@ -1,16 +1,205 @@
-# Week 2 — Vector Search
+---
 
-Lesson numbers and titles follow the [official module](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/README.md). Status describes the files here, not course or homework completion. Commands below use the repository root; see the [map index](README.md) for prerequisites and status definitions.
+## Extension — PostgreSQL HNSW Indexing & Evaluation
 
-| Official lesson | Status | Relevant local files and purpose | Run or inspect |
-| --- | --- | --- | --- |
-| [1. What is Vector Search](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/01-intro.md) | Related | [inmemory_vector_search.py](../src/llm_zoomcamp_2026/week2/labs/inmemory_vector_search.py) illustrates semantic retrieval; [rag.py](../src/llm_zoomcamp_2026/week1/core/rag.py) illustrates keyword retrieval. | `uv run python -m llm_zoomcamp_2026.week2.labs.inmemory_vector_search` (FAQ and model download) |
-| [2. Embeddings](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/02-embeddings.md) | Implemented | [embedding_similarity.py](../src/llm_zoomcamp_2026/week2/labs/embedding_similarity.py) compares local embeddings; [api_embeddings.py](../src/llm_zoomcamp_2026/week2/labs/api_embeddings.py) explores provider embeddings as a personal extension. | `uv run python -m llm_zoomcamp_2026.week2.labs.embedding_similarity` (model download); `uv run python -m llm_zoomcamp_2026.week2.labs.api_embeddings` (embedding API) |
-| [3. Embedding Our Dataset](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/03-embeddings-dataset.md) | Implemented | [inmemory_vector_search.py](../src/llm_zoomcamp_2026/week2/labs/inmemory_vector_search.py) encodes FAQ texts in batches. | `uv run python -m llm_zoomcamp_2026.week2.labs.inmemory_vector_search` (FAQ and model download) |
-| [4. Vector Search](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/04-vector-search.md) | Implemented | [inmemory_vector_search.py](../src/llm_zoomcamp_2026/week2/labs/inmemory_vector_search.py) computes NumPy dot products, best match and top five. | `uv run python -m llm_zoomcamp_2026.week2.labs.inmemory_vector_search` (FAQ and model download) |
-| [5. Vector Search with minsearch](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/05-minsearch-vector.md) | Implemented | [inmemory_vector_search.py](../src/llm_zoomcamp_2026/week2/labs/inmemory_vector_search.py) also builds and queries an in-memory vector index. | `uv run python -m llm_zoomcamp_2026.week2.labs.inmemory_vector_search` (FAQ and model download) |
-| [6. RAG with Vector Search](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/06-rag-vector.md) | Implemented | [vector_rag.py](../src/llm_zoomcamp_2026/week2/core/vector_rag.py) supplies vector retrieval; [inmemory_vector_rag.py](../src/llm_zoomcamp_2026/week2/demos/inmemory_vector_rag.py) combines retrieval and generation. | `uv run python -m llm_zoomcamp_2026.week2.demos.inmemory_vector_rag` (FAQ, model and LLM API) |
-| [7. Vector Search with sqlitesearch](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/07-sqlitesearch-vector.md) | Implemented | [ingest_sqlite.py](../src/llm_zoomcamp_2026/week2/scripts/ingest_sqlite.py) creates the persistent index; [sqlite_vector_rag.py](../src/llm_zoomcamp_2026/week2/demos/sqlite_vector_rag.py) queries it and generates an answer. | `uv run python -m llm_zoomcamp_2026.week2.scripts.ingest_sqlite` (writes new database; FAQ and model download); then `uv run python -m llm_zoomcamp_2026.week2.demos.sqlite_vector_rag` (existing database and LLM API) |
-| [8. Vector Search with PGVector](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/08-pgvector.md) | Implemented | [ingest_pgvector.py](../src/llm_zoomcamp_2026/week2/scripts/ingest_pgvector.py) upserts embeddings; [pgvector_search.py](../src/llm_zoomcamp_2026/week2/demos/pgvector_search.py) searches them; [compose.yml](../compose.yml), [.env.example](../.env.example) and [001_init.sql](../sql/init/001_init.sql) configure and initialize PostgreSQL with pgvector. | `docker compose up -d`; `uv run python -m llm_zoomcamp_2026.week2.scripts.ingest_pgvector` (upserts persistent rows; FAQ and model download); `uv run python -m llm_zoomcamp_2026.week2.demos.pgvector_search` |
-| [9. ONNX Embedder](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/09-onnx-embedder.md) (optional) | Not represented | No ONNX embedding implementation is present; the local examples use Sentence Transformers. | Read the official lesson. |
-| [10. Next Steps](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/02-vector-search/10-next-steps.md) | Related | The [in-memory RAG demo](../src/llm_zoomcamp_2026/week2/demos/inmemory_vector_rag.py), [SQLite demo](../src/llm_zoomcamp_2026/week2/demos/sqlite_vector_rag.py), and [pgvector demo](../src/llm_zoomcamp_2026/week2/demos/pgvector_search.py) illustrate the approaches discussed. | Use the commands in lessons 6–8 above. |
+**Status:** Completed (learning lab)
+
+This extension explores approximate nearest-neighbor search
+using PostgreSQL, pgvector, and HNSW.
+
+### Learning objectives
+
+- Understand HNSW graph construction and multilayer search.
+- Compare Exact Search with approximate HNSW Search.
+- Understand `m`, `ef_construction`, and `ef_search`.
+- Analyze execution plans with `EXPLAIN (ANALYZE, BUFFERS)`.
+- Evaluate retrieval accuracy using Recall@K.
+- Understand post-filtering in ANN search.
+- Compare iterative scan modes.
+- Build and evaluate a Partial HNSW Index.
+- Measure query latency with Python.
+
+### Relevant files
+
+| File                                                                                           | Purpose                                             |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| [pgvector_hnsw_lab_ingest.py](../src/llm_zoomcamp_2026/week2/labs/pgvector_hnsw_lab_ingest.py) | Generate embeddings and ingest FAQ documents        |
+| [hnsw_pg_search.py](../src/llm_zoomcamp_2026/week2/labs/hnsw_pg_search.py)                     | Benchmark Exact Search, HNSW, Recall@5, and latency |
+| [faq_hnsw_lab.sql](../sql/labs/faq_hnsw_lab.sql)                                               | Define the lab table and HNSW indexes               |
+
+### Environment
+
+- PostgreSQL 17 with pgvector
+- Python 3.14
+- Psycopg3
+- SentenceTransformers
+- Embedding model: `sentence-transformers/all-MiniLM-L6-v2`
+- Vector dimensions: 384
+- Distance metric: Cosine distance (`<=>`)
+
+### Run the lab
+
+Start PostgreSQL:
+
+```bash
+docker compose up -d
+```
+
+On a fresh database, apply `sql/labs/faq_hnsw_lab.sql`
+before ingestion.
+
+Ingest FAQ documents:
+
+```bash
+uv run python -m llm_zoomcamp_2026.week2.labs.pgvector_hnsw_lab_ingest
+```
+
+Run the HNSW benchmark:
+
+```bash
+uv run python -m llm_zoomcamp_2026.week2.labs.hnsw_pg_search
+```
+
+### Dataset and evaluation setup
+
+| Property               | Value |
+| ---------------------- | ----- |
+| Total documents        | 1,457 |
+| Matching documents     | 161   |
+| Evaluation queries     | 20    |
+| Top-K                  | 5     |
+| Embedding dimensions   | 384   |
+| HNSW `m`               | 16    |
+| HNSW `ef_construction` | 64    |
+
+Recall@5 uses Exact Search as the nearest-neighbor
+ground truth and compares document IDs.
+
+### Experiment 1 — Full HNSW Index
+
+The HNSW index covers all documents, while queries filter
+by course and embedding model.
+
+| ef_search | Average Recall@5 |
+| --------- | ---------------- |
+| 10        | 34%              |
+| 20        | 53%              |
+| 40        | 80%              |
+| 100       | 96%              |
+
+**Finding:** Increasing `ef_search` improves recall,
+but higher search breadth can increase query latency.
+
+Post-filtering can also cause HNSW to return fewer than
+the requested K results.
+
+### Experiment 2 — Iterative HNSW Scan
+
+Compared three modes:
+
+- `off`: No automatic continued index scan.
+- `strict_order`: Continue scanning while preserving distance order.
+- `relaxed_order`: Continue scanning with relaxed distance ordering.
+
+Full HNSW results:
+
+| Mode          | ef_search | Recall@5 | Avg Returned |
+| ------------- | --------- | -------- | ------------ |
+| off           | 10        | 34%      | 1.70/5       |
+| off           | 40        | 80%      | 4.00/5       |
+| strict_order  | 10        | 100%     | 5.00/5       |
+| strict_order  | 40        | 100%     | 5.00/5       |
+| relaxed_order | 10        | 100%     | 5.00/5       |
+| relaxed_order | 40        | 100%     | 5.00/5       |
+
+**Finding:** Iterative scans improved recall when the
+course filter removed many HNSW candidates.
+
+### Experiment 3 — Partial HNSW Index
+
+Created an HNSW index limited to:
+
+- Course: `llm-zoomcamp`
+- Embedding model: `sentence-transformers/all-MiniLM-L6-v2`
+
+Verified index usage with:
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+```
+
+PostgreSQL selected:
+
+`ix_faq_hnsw_lab_llm_partial`
+
+Results:
+
+| Mode          | ef_search | Recall@5 |
+| ------------- | --------- | -------- |
+| off           | 10        | 99%      |
+| off           | 40        | 100%     |
+| strict_order  | 10        | 99%      |
+| strict_order  | 40        | 100%     |
+| relaxed_order | 10        | 99%      |
+| relaxed_order | 40        | 100%     |
+
+**Finding:** Partial indexing substantially improved
+filtered ANN retrieval without requiring iterative scans.
+
+### Experiment 4 — Exact vs Partial HNSW Latency
+
+Measured query latency using `time.perf_counter()`,
+including query execution and result fetching.
+
+| Method              | Recall@5 | Median latency |
+| ------------------- | -------- | -------------- |
+| Exact Search        | 100%     | 1.421 ms       |
+| HNSW off, ef=10     | 99%      | 0.817 ms       |
+| HNSW off, ef=40     | 100%     | 0.893 ms       |
+| HNSW strict, ef=10  | 99%      | 0.715 ms       |
+| HNSW strict, ef=40  | 100%     | 0.732 ms       |
+| HNSW relaxed, ef=10 | 99%      | 0.824 ms       |
+| HNSW relaxed, ef=40 | 100%     | 0.958 ms       |
+
+**Finding:** Partial HNSW achieved competitive latency
+and high recall in this small-scale experiment.
+
+### Important engineering lessons
+
+1. Recall@K evaluates approximate retrieval against exact
+   nearest neighbors, not semantic relevance.
+2. High `ef_search` can improve recall at additional cost.
+3. Post-filtering may produce fewer than K results.
+4. Iterative scans can compensate for filtering losses.
+5. Partial HNSW indexes reduce the candidate search space.
+6. Partial indexes introduce additional write and storage costs.
+7. Prepared statements and query planning can affect
+   benchmark validity.
+8. Index selection must be verified using `EXPLAIN`.
+
+### Benchmark limitations
+
+These results are preliminary:
+
+- Only 20 evaluation queries.
+- Small dataset with 161 matching documents.
+- One timing sample per query per configuration.
+- No dedicated warm-up or randomized execution order.
+- Python timing includes driver and communication overhead.
+- Exact Search was measured with index scans disabled.
+- Results do not establish production performance.
+
+The observed 100% Recall@5 applies only to the tested
+queries and configurations.
+
+### Conclusion
+
+HNSW is useful for approximate vector retrieval, but its
+effectiveness depends on index design, query filtering,
+search parameters, and workload.
+
+For this dataset, Partial HNSW significantly improved recall
+compared with Full HNSW without iterative scanning.
+
+Further optimization would require larger datasets,
+controlled benchmarks, and production-like workloads.
