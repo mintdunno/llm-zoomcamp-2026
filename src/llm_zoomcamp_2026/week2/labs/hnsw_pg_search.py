@@ -1,4 +1,4 @@
-"""Compare HNSW search quality and latency with exact vector search."""
+"""Benchmark Exact Search and HNSW search quality and latency."""
 
 import os
 import time
@@ -23,7 +23,7 @@ def recall_at_k(
 
 
 def main() -> None:
-    """Compare HNSW iterative scan modes across multiple queries."""
+    """Compare exact search and HNSW iterative scan configurations."""
     load_dotenv()
 
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
@@ -57,12 +57,16 @@ def main() -> None:
     modes = ("off", "strict_order", "relaxed_order")
     ef_values = (10, 40)
 
+    # Benchmark metrics.
+    exact_latencies = []
+
     recalls = {(mode, ef): [] for mode in modes for ef in ef_values}
+
     latencies = {(mode, ef): [] for mode in modes for ef in ef_values}
 
     returned_counts = {(mode, ef): [] for mode in modes for ef in ef_values}
 
-    # Encode all questions once.
+    # 1. Encode all questions once.
     embedder = SentenceTransformer(EMBEDDING_MODEL)
     v_questions = embedder.encode(questions)
 
@@ -70,11 +74,12 @@ def main() -> None:
         SELECT id
         FROM faq_hnsw_lab
         WHERE course = %s
-        AND embedding_model = %s
+          AND embedding_model = %s
         ORDER BY embedding <=> %s
         LIMIT %s
     """
 
+    # 2. Connect to PostgreSQL.
     with psycopg.connect(
         os.environ["DATABASE_URL"],
         connect_timeout=10,
@@ -93,10 +98,13 @@ def main() -> None:
             )
 
             with conn.cursor() as cursor:
-                # 1. Exact search (ground truth).
-                # Disabling index scans ensures this query checks every matching vector.
+                print(f"\nQuestion {idx}: {question}")
+
+                # 3. Exact Search (ground truth).
                 cursor.execute("SET LOCAL enable_seqscan = on")
                 cursor.execute("SET LOCAL enable_indexscan = off")
+
+                start = time.perf_counter()
 
                 cursor.execute(
                     search_sql,
@@ -106,14 +114,16 @@ def main() -> None:
 
                 exact_ids = [row[0] for row in cursor.fetchall()]
 
-                print(f"\nQuestion {idx}: {question}")
-                print(f"Exact Top-{top_k}: {exact_ids}")
+                elapsed_ms = (time.perf_counter() - start) * 1000
+                exact_latencies.append(elapsed_ms)
 
-                # 2. HNSW approximate search.
+                print(f"Exact Top-{top_k}: {exact_ids}")
+                print(f"Exact latency: {elapsed_ms:.3f} ms")
+
+                # 4. HNSW Approximate Search.
                 cursor.execute("SET LOCAL enable_indexscan = on")
                 cursor.execute("SET LOCAL enable_seqscan = off")
 
-                # Compare every scan mode at each configured search breadth.
                 for mode in modes:
                     cursor.execute(
                         "SELECT set_config('hnsw.iterative_scan', %s, true)",
@@ -137,33 +147,43 @@ def main() -> None:
                         hnsw_ids = [row[0] for row in cursor.fetchall()]
 
                         elapsed_ms = (time.perf_counter() - start) * 1000
+
+                        # Record latency.
                         latencies[(mode, ef)].append(elapsed_ms)
 
+                        # Record recall.
                         recall = recall_at_k(
                             exact_ids,
                             hnsw_ids,
                         )
 
                         recalls[(mode, ef)].append(recall)
+
+                        # Record returned document count.
                         returned_counts[(mode, ef)].append(len(hnsw_ids))
 
                         print(
                             f"  {mode:14} | "
                             f"ef={ef:3} | "
                             f"Recall@{top_k}={recall:.0%} | "
-                            f"Returned={len(hnsw_ids)}/{top_k}"
+                            f"Returned={len(hnsw_ids)}/{top_k} | "
+                            f"Latency={elapsed_ms:.3f} ms"
                         )
 
-    # 3. Summary.
-    print("\n--- Iterative HNSW Benchmark ---")
+    # 5. Exact Search Summary.
+    print("\n--- Exact Search Latency ---")
+    print(f"Mean:   {mean(exact_latencies):.3f} ms")
+    print(f"Median: {median(exact_latencies):.3f} ms")
+
+    # 6. HNSW Recall Summary.
+    print("\n--- HNSW Recall Benchmark ---")
 
     for mode in modes:
         for ef in ef_values:
             key = (mode, ef)
 
-            avg_recall = sum(recalls[key]) / len(recalls[key])
-
-            avg_returned = sum(returned_counts[key]) / len(returned_counts[key])
+            avg_recall = mean(recalls[key])
+            avg_returned = mean(returned_counts[key])
 
             print(
                 f"{mode:14} | "
@@ -171,6 +191,8 @@ def main() -> None:
                 f"Recall@{top_k}={avg_recall:.2%} | "
                 f"Avg Returned={avg_returned:.2f}/{top_k}"
             )
+
+    # 7. HNSW Latency Summary.
     print("\n--- HNSW Latency Benchmark ---")
 
     for mode in modes:
@@ -178,9 +200,30 @@ def main() -> None:
             values = latencies[(mode, ef)]
 
             print(
-                f"{mode:14} | ef={ef:3} | "
+                f"{mode:14} | "
+                f"ef={ef:3} | "
                 f"Mean={mean(values):.3f} ms | "
                 f"Median={median(values):.3f} ms"
+            )
+
+    # 8. Exact vs HNSW Comparison.
+    print("\n--- Exact vs HNSW Comparison ---")
+
+    print(
+        f"{'Exact Search':14} | "
+        f"Recall@{top_k}=100.00% | "
+        f"Median={median(exact_latencies):.3f} ms"
+    )
+
+    for mode in modes:
+        for ef in ef_values:
+            key = (mode, ef)
+
+            print(
+                f"{mode:14} | "
+                f"ef={ef:3} | "
+                f"Recall@{top_k}={mean(recalls[key]):.2%} | "
+                f"Median={median(latencies[key]):.3f} ms"
             )
 
 
