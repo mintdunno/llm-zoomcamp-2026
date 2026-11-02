@@ -1,6 +1,8 @@
-"""Compare exact and HNSW approximate vector search in PostgreSQL using pgvector."""
+"""Compare HNSW search quality and latency with exact vector search."""
 
 import os
+import time
+from statistics import mean, median
 
 import psycopg
 from dotenv import load_dotenv
@@ -8,8 +10,20 @@ from pgvector.psycopg import register_vector
 from sentence_transformers import SentenceTransformer
 
 
+def recall_at_k(
+    exact_ids: list[int],
+    approx_ids: list[int],
+) -> float:
+    """Return the fraction of exact neighbors found by approximate search."""
+    if not exact_ids:
+        return 0.0
+
+    matches = set(exact_ids) & set(approx_ids)
+    return len(matches) / len(exact_ids)
+
+
 def main() -> None:
-    """Run vector search benchmarks comparing exact search with HNSW at different ef_search settings."""
+    """Compare HNSW iterative scan modes across multiple queries."""
     load_dotenv()
 
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
@@ -40,97 +54,134 @@ def main() -> None:
     course = "llm-zoomcamp"
     top_k = 5
 
+    modes = ("off", "strict_order", "relaxed_order")
+    ef_values = (10, 40)
+
+    recalls = {(mode, ef): [] for mode in modes for ef in ef_values}
+    latencies = {(mode, ef): [] for mode in modes for ef in ef_values}
+
+    returned_counts = {(mode, ef): [] for mode in modes for ef in ef_values}
+
+    # Encode all questions once.
     embedder = SentenceTransformer(EMBEDDING_MODEL)
     v_questions = embedder.encode(questions)
 
-    with psycopg.connect(os.environ["DATABASE_URL"], connect_timeout=10) as conn:
+    search_sql = """
+        SELECT id
+        FROM faq_hnsw_lab
+        WHERE course = %s
+        AND embedding_model = %s
+        ORDER BY embedding <=> %s
+        LIMIT %s
+    """
+
+    with psycopg.connect(
+        os.environ["DATABASE_URL"],
+        connect_timeout=10,
+    ) as conn:
         register_vector(conn)
-        recalls = {10: [], 20: [], 40: [], 100: []}
-        for idx, v_question in enumerate(v_questions):
+
+        for idx, (question, v_question) in enumerate(
+            zip(questions, v_questions, strict=True),
+            start=1,
+        ):
+            params = (
+                course,
+                EMBEDDING_MODEL,
+                v_question,
+                top_k,
+            )
+
             with conn.cursor() as cursor:
-                search_sql = """
-                    SELECT id
-                    FROM faq_hnsw_lab
-                    WHERE course = %s
-                    AND embedding_model = %s
-                    ORDER BY embedding <=> %s
-                    LIMIT %s
-                """
-
-                params = (course, EMBEDDING_MODEL, v_question, top_k)
-
-                # 1. Exact Search: disable HNSW index scans.
-                # Exact Search
+                # 1. Exact search (ground truth).
+                # Disabling index scans ensures this query checks every matching vector.
                 cursor.execute("SET LOCAL enable_seqscan = on")
                 cursor.execute("SET LOCAL enable_indexscan = off")
-                cursor.execute(search_sql, params, prepare=False)
+
+                cursor.execute(
+                    search_sql,
+                    params,
+                    prepare=False,
+                )
 
                 exact_ids = [row[0] for row in cursor.fetchall()]
-                print(f"\nQuestion {idx + 1}: {questions[idx]}")
-                print("Exact Top-5:", exact_ids)
 
-                # 2. HNSW Search: enable index scans.
+                print(f"\nQuestion {idx}: {question}")
+                print(f"Exact Top-{top_k}: {exact_ids}")
+
+                # 2. HNSW approximate search.
                 cursor.execute("SET LOCAL enable_indexscan = on")
                 cursor.execute("SET LOCAL enable_seqscan = off")
-                cursor.execute(search_sql, params, prepare=False)
 
-                for ef in (10, 20, 40, 100):
+                # Compare every scan mode at each configured search breadth.
+                for mode in modes:
                     cursor.execute(
-                        "SELECT set_config('hnsw.ef_search', %s, true)",
-                        (str(ef),),
+                        "SELECT set_config('hnsw.iterative_scan', %s, true)",
+                        (mode,),
                     )
-                    cursor.execute(
-                        "EXPLAIN (ANALYZE, BUFFERS) " + search_sql,
-                        params,
-                    )
-                    plan_lines = [line for (line,) in cursor.fetchall()]
-                    if not any("Index Scan" in line for line in plan_lines):
-                        print(
-                            f"WARNING: ef_search={ef} did NOT use an index scan; "
-                            "recall is not a valid HNSW measurement."
+
+                    for ef in ef_values:
+                        cursor.execute(
+                            "SELECT set_config('hnsw.ef_search', %s, true)",
+                            (str(ef),),
                         )
-                    if ef == 10 and idx in (0, 1, 2):
-                        print(f"\nExecution Plan — Question {idx + 1}")
 
-                        for line in plan_lines:
-                            if any(
-                                keyword in line
-                                for keyword in (
-                                    "Scan",
-                                    "Sort",
-                                    "Limit",
-                                    "Rows Removed",
-                                    "Execution Time",
-                                )
-                            ):
-                                print(line)
+                        start = time.perf_counter()
 
-                    cursor.execute(search_sql, params)
-                    hnsw_ids = [row[0] for row in cursor.fetchall()]
+                        cursor.execute(
+                            search_sql,
+                            params,
+                            prepare=False,
+                        )
 
-                    recall = recall_at_k(exact_ids, hnsw_ids)
-                    recalls[ef].append(recall)
+                        hnsw_ids = [row[0] for row in cursor.fetchall()]
 
-                    print(f"ef_search={ef}")
-                    print("HNSW IDs:", hnsw_ids)
-                    print(f"Recall@{top_k}: {recall:.0%}")
+                        elapsed_ms = (time.perf_counter() - start) * 1000
+                        latencies[(mode, ef)].append(elapsed_ms)
 
-        print("\n--- Average Recall@5 ---")
-        for ef, values in recalls.items():
-            avg_recall = sum(values) / len(values)
-            print(f"ef_search={ef}: {avg_recall:.2%}")
+                        recall = recall_at_k(
+                            exact_ids,
+                            hnsw_ids,
+                        )
 
+                        recalls[(mode, ef)].append(recall)
+                        returned_counts[(mode, ef)].append(len(hnsw_ids))
 
-def recall_at_k(
-    exact_ids: list[int],
-    approx_ids: list[int],
-) -> float:
-    """Calculate Recall@K by comparing approximate result IDs against ground truth exact IDs."""
-    if not exact_ids:
-        return 0.0
+                        print(
+                            f"  {mode:14} | "
+                            f"ef={ef:3} | "
+                            f"Recall@{top_k}={recall:.0%} | "
+                            f"Returned={len(hnsw_ids)}/{top_k}"
+                        )
 
-    matches = set(exact_ids) & set(approx_ids)
-    return len(matches) / len(exact_ids)
+    # 3. Summary.
+    print("\n--- Iterative HNSW Benchmark ---")
+
+    for mode in modes:
+        for ef in ef_values:
+            key = (mode, ef)
+
+            avg_recall = sum(recalls[key]) / len(recalls[key])
+
+            avg_returned = sum(returned_counts[key]) / len(returned_counts[key])
+
+            print(
+                f"{mode:14} | "
+                f"ef={ef:3} | "
+                f"Recall@{top_k}={avg_recall:.2%} | "
+                f"Avg Returned={avg_returned:.2f}/{top_k}"
+            )
+    print("\n--- HNSW Latency Benchmark ---")
+
+    for mode in modes:
+        for ef in ef_values:
+            values = latencies[(mode, ef)]
+
+            print(
+                f"{mode:14} | ef={ef:3} | "
+                f"Mean={mean(values):.3f} ms | "
+                f"Median={median(values):.3f} ms"
+            )
 
 
 if __name__ == "__main__":
