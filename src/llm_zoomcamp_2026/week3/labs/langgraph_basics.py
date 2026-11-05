@@ -1,4 +1,5 @@
-from typing import NotRequired, TypedDict
+from operator import add
+from typing import Annotated, NotRequired, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
@@ -7,16 +8,25 @@ class TaskState(TypedDict):
     question: str
     route: NotRequired[str]
     result: NotRequired[str]
+    history: Annotated[list[str], add]
 
 
 def prepare(state: TaskState) -> dict:
     print("Prepare received:", state)
-    return {"route": "faq"}
+
+    return {
+        "route": "faq",
+        "history": ["prepare executed"],
+    }
 
 
 def answer(state: TaskState) -> dict:
     print("Answer received:", state)
-    return {"result": f"Processing: {state['question']}"}
+
+    return {
+        "result": f"Processing: {state['question']}",
+        "history": ["answer executed"],
+    }
 
 
 builder = StateGraph(TaskState)
@@ -30,5 +40,11 @@ builder.add_edge("answer", END)
 
 graph = builder.compile()
 
-result = graph.invoke({"question": "Can I join late?"})
+result = graph.invoke(
+    {
+        "question": "Can I join late?",
+        "history": [],
+    }
+)
+
 print("Final state:", result)
