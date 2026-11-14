@@ -78,8 +78,12 @@ def search_faq(query: str, k: int = 5) -> list[dict]:
 
 @tool
 def lookup_faq(query: str) -> str:
-    """Search LLM Zoomcamp FAQ for course-specific information."""
-    docs = search_faq(query, k=3)
+    """Search LLM Zoomcamp FAQ for course information."""
+    try:
+        docs = search_faq(query, k=3)
+    except psycopg.OperationalError:
+        return json.dumps({"error": "FAQ database unavailable"})
+
     return json.dumps(docs, ensure_ascii=False)
 
 
