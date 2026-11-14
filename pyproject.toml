@@ -12,6 +12,7 @@ dependencies = [
     "langchain>=1.4.7",
     "langchain-openai>=1.7.3",
     "langgraph>=1.2.19",
+    "langgraph-checkpoint-postgres>=3.2.1",
     "minsearch>=0.2.0",
     "openai>=3.35.1",
     "pgvector>=0.5.1",
