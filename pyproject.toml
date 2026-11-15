@@ -44,3 +44,6 @@ explicit = true
 dev = [
     "pytest>=9.2.0",
 ]
+
+[tool.ruff.lint]
+extend-select = ["I"]
